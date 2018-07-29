@@ -1,4 +1,4 @@
-#include "dz60.h"
+#include QMK_KEYBOARD_H
 
 
 #define SINS LSFT(KC_INS)
@@ -25,3 +25,45 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		KC_TRNS, KC_TRNS, KC_TRNS,      KC_TRNS, KC_TRNS, KC_TRNS,       KC_TRNS, KC_TRNS, MO(2), KC_TRNS
     ),
 };
+
+enum function_id {
+    SHIFT_ESC,
+};
+
+const uint16_t PROGMEM fn_actions[] = {
+  [0]  = ACTION_FUNCTION(SHIFT_ESC),
+};
+
+void action_function(keyrecord_t *record, uint8_t id, uint8_t opt) {
+  static uint8_t shift_esc_shift_mask;
+  switch (id) {
+    case SHIFT_ESC:
+      shift_esc_shift_mask = get_mods()&MODS_CTRL_MASK;
+      if (record->event.pressed) {
+        if (shift_esc_shift_mask) {
+          add_key(KC_GRV);
+          send_keyboard_report();
+        } else {
+          add_key(KC_ESC);
+          send_keyboard_report();
+        }
+      } else {
+        if (shift_esc_shift_mask) {
+          del_key(KC_GRV);
+          send_keyboard_report();
+        } else {
+          del_key(KC_ESC);
+          send_keyboard_report();
+        }
+      }
+      break;
+  }
+}
+
+void led_set_user(uint8_t usb_led) {
+    if (usb_led & (1 << USB_LED_CAPS_LOCK)) {
+        DDRB |= (1 << 2); PORTB &= ~(1 << 2);
+    } else {
+        DDRB &= ~(1 << 2); PORTB &= ~(1 << 2);
+    }
+}
